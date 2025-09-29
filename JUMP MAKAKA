@@ -1,0 +1,74 @@
+-- Проверяем, есть ли доступ к локальному игроку
+local player = game.Players.LocalPlayer
+if not player then return end
+
+-- Создаем ScreenGui
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "InfinityJumpGui"
+screenGui.ResetOnSpawn = false
+screenGui.Parent = player:WaitForChild("PlayerGui")
+
+-- Создаем основной Frame 3x3
+local frame = Instance.new("Frame")
+frame.Size = UDim2.new(0, 300, 0, 300) -- 3x3 условно в пикселях
+frame.Position = UDim2.new(0.5, -150, 0.5, -150) -- Центрируем
+frame.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+frame.BorderSizePixel = 0
+frame.Parent = screenGui
+
+-- Создаем текст "Infinity Jump"
+local textLabel = Instance.new("TextLabel")
+textLabel.Size = UDim2.new(1, 0, 0.3, 0)
+textLabel.Position = UDim2.new(0, 0, 0, 0)
+textLabel.Text = "Infinity Jump"
+textLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+textLabel.BackgroundTransparency = 1
+textLabel.TextScaled = true
+textLabel.Font = Enum.Font.SourceSansBold
+textLabel.Parent = frame
+
+-- Создаем кнопку 2x2
+local button = Instance.new("TextButton")
+button.Size = UDim2.new(0.66, 0, 0.66, 0) -- 2x2 относительно Frame
+button.Position = UDim2.new(0.17, 0, 0.33, 0) -- Центрируем в нижней части
+button.Text = "Enable"
+button.TextColor3 = Color3.fromRGB(255, 255, 255)
+button.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
+button.TextScaled = true
+button.Font = Enum.Font.SourceSansBold
+button.Parent = frame
+
+-- Переменная для отслеживания состояния
+local isJumping = false
+
+-- Функция для бесконечных прыжков
+local function infiniteJump()
+    while isJumping do
+        local humanoid = player.Character and player.Character:FindFirstChildOfClass("Humanoid")
+        if humanoid then
+            humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
+        end
+        wait(0.1) -- Задержка для предотвращения спама
+    end
+end
+
+-- Обработчик нажатия кнопки
+button.MouseButton1Click:Connect(function()
+    isJumping = not isJumping
+    if isJumping then
+        button.Text = "Stop"
+        button.BackgroundColor3 = Color3.fromRGB(0, 255, 0)
+        spawn(infiniteJump) -- Запускаем функцию прыжков в отдельном потоке
+    else
+        button.Text = "Enable"
+        button.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
+    end
+end)
+
+-- Обработка сброса персонажа
+player.CharacterAdded:Connect(function(character)
+    if isJumping then
+        wait(0.5) -- Ждем, пока персонаж загрузится
+        spawn(infiniteJump)
+    end
+end)
